@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What's on your mind?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .submit-section {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+            margin-bottom: 15px;
+            background: #ffffff;
+            color: #000000;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        button {
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .thoughts-cloud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .thought-bubble {
+            position: absolute;
+            background: #ffffff;
+            color: #000000;
+            padding: 15px 20px;
+            border-radius: 20px;
+            max-width: 250px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+            animation: float 20s infinite ease-in-out, fadeInThought 1s ease-out;
+            opacity: 0.9;
+        }
+
+        @keyframes fadeInThought {
+            from {
+                opacity: 0;
+                transform: scale(0.5) translateY(20px);
+            }
+            to {
+                opacity: 0.9;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) translateX(0px);
+            }
+            25% {
+                transform: translateY(-15px) translateX(10px);
+            }
+            50% {
+                transform: translateY(-5px) translateX(-10px);
+            }
+            75% {
+                transform: translateY(-20px) translateX(5px);
+            }
+        }
+
+        .message-count {
+            background: #ffffff;
+            color: #000000;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .count-container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666666;
+            padding: 80px 20px;
+            font-size: 1em;
+            position: relative;
+            z-index: 10;
+        }
+
+        .empty-state::before {
+            content: "💭";
+            display: block;
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .status {
+            text-align: center;
+            color: #666666;
+            font-size: 0.85em;
+            margin-top: 10px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .status.connected {
+            color: #4CAF50;
+        }
+
+        .status.error {
+            color: #f44336;
+        }
+
+        .setup-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .setup-notice strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>What's on your mind?</h1>
+        
+        <div class="setup-notice" id="setupNotice">
+            <strong>⚠️ Firebase Setup Required</strong>
+            You need to add your Firebase configuration below in the code.<br>
+            See instructions after the code!
+        </div>
+
+        <div class="submit-section">
+            <textarea id="messageInput" placeholder="Share your thoughts..."></textarea>
+            <button onclick="submitMessage()" id="submitBtn">Release</button>
+            <div class="status" id="status">Setting up connection...</div>
+        </div>
+
+        <div class="count-container">
+            <div class="message-count"><span id="messageCount">0</span> thoughts</div>
+        </div>
+    </div>
+
+    <div class="thoughts-cloud" id="thoughtsCloud"></div>
+
+    <div id="emptyState" class="empty-state">No thoughts yet</div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        // REPLACE THIS WITH YOUR OWN FIREBASE CONFIG
+        // Get this from Firebase Console (instructions below)
+        
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // ============================================
+        // APPLICATION CODE
+        // ============================================
+        
+        let db;
+        let thoughtsRef;
+        let isConnected = false;
+
+        // Initialize Firebase
+        function initFirebase() {
+            try {
+                // Check if config is still default
+                if (firebaseConfig.apiKey === "YOUR_API_KEY_HERE") {
+                    updateStatus("Please add your Firebase configuration", "error");
+                    document.getElementById('submitBtn').disabled = true;
+                    return;
+                }
+
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                thoughtsRef = db.ref('thoughts');
+                
+                // Listen for new thoughts in real-time
+                thoughtsRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    renderThoughts(data);
+                    isConnected = true;
+                    updateStatus("Connected - Live updates active", "connected");
+                    document.getElementById('setupNotice').style.display = 'none';
+                });
+
+                // Handle connection status
+                const connectedRef = db.ref('.info/connected');
+                connectedRef.on('value', (snap) => {
+                    if (snap.val() === true) {
+                        updateStatus("Connected - Live updates active", "connected");
+                    } else {
+                        updateStatus("Reconnecting...", "");
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+                updateStatus("Setup error - check configuration", "error");
+                document.getElementById('submitBtn').disabled = true;
+            }
+        }
+
+        function updateStatus(message, className) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + className;
+        }
+
+        function submitMessage() {
+            const text = document.getElementById('messageInput').value.trim();
+
+            if (!text) {
+                return;
+            }
+
+            if (!isConnected) {
+                alert('Not connected to Firebase. Please check your configuration.');
+                return;
+            }
+
+            // Create new thought object
+            const thought = {
+                text: text,
+                timestamp: Date.now()
+            };
+
+            // Push to Firebase (this syncs to all users!)
+            thoughtsRef.push(thought)
+                .then(() => {
+                    document.getElementById('messageInput').value = '';
+                    updateStatus("Thought released! ✨", "connected");
+                    setTimeout(() => {
+                        updateStatus("Connected - Live updates active", "connected");
+                    }, 2000);
+                })
+                .catch((error) => {
+                    console.error("Error submitting thought:", error);
+                    updateStatus("Error sending thought", "error");
+                });
+        }
+
+        function getRandomPosition() {
+            const padding = 50;
+            const x = Math.random() * (window.innerWidth - 300) + padding;
+            const y = Math.random() * (window.innerHeight - 200) + 150;
+            return { x, y };
+        }
+
+        function renderThoughts(data) {
+            const cloud = document.getElementById('thoughtsCloud');
+            const countEl = document.getElementById('messageCount');
+            const emptyState = document.getElementById('emptyState');
+
+            if (!data) {
+                countEl.textContent = '0';
+                emptyState.style.display = 'block';
+                cloud.innerHTML = '';
+                return;
+            }
+
+            // Convert Firebase object to array
+            const thoughtsArray = Object.values(data);
+            countEl.textContent = thoughtsArray.length;
+
+            emptyState.style.display = 'none';
+
+            cloud.innerHTML = thoughtsArray.map(thought => {
+                const pos = getRandomPosition();
+                const delay = Math.random() * 2;
+                return `
+                    <div class="thought-bubble" style="left: ${pos.x}px; top: ${pos.y}px; animation-delay: ${delay}s;">
+                        ${escapeHtml(thought.text)}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('messageInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
+                e.preventDefault();
+                submitMessage();
+            }
+        });
+
+        // Reposition thoughts on window resize
+        window.addEventListener('resize', () => {
+            const connectedRef = db.ref('.info/connected');
+            connectedRef.once('value').then(() => {
+                thoughtsRef.once('value', (snapshot) => {
+                    renderThoughts(snapshot.val());
+                });
+            });
+        });
+
+        // Initialize Firebase when page loads
+        initFirebase();
+    </script>
+</body>
+</html>

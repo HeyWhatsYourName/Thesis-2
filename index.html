@@ -101,7 +101,7 @@
 
         .thought-bubble {
             position: absolute;
-            background: rgba(255, 255, 255, 0.85);
+            background: #ffffff;
             color: #000000;
             padding: 15px 20px;
             border-radius: 20px;
@@ -112,15 +112,7 @@
             font-size: 14px;
             box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
             animation: float 20s infinite ease-in-out, fadeInThought 1s ease-out;
-            opacity: 0.85;
-            backdrop-filter: blur(2px);
-            transition: opacity 0.3s, transform 0.3s;
-        }
-
-        .thought-bubble:hover {
-            opacity: 1;
-            transform: scale(1.05);
-            z-index: 100;
+            opacity: 0.9;
         }
 
         @keyframes fadeInThought {
@@ -255,7 +247,7 @@
         // REPLACE THIS WITH YOUR OWN FIREBASE CONFIG
         // Get this from Firebase Console (instructions below)
         
-     const firebaseConfig = {
+   const firebaseConfig = {
   apiKey: "AIzaSyDb2evfGYR_CCGKJkBdwpKhLgSrphJ2EL8",
   authDomain: "thesis-2-test.firebaseapp.com",
   databaseURL: "https://thesis-2-test-default-rtdb.firebaseio.com",
@@ -263,7 +255,8 @@
   storageBucket: "thesis-2-test.firebasestorage.app",
   messagingSenderId: "153459052305",
   appId: "1:153459052305:web:db7398436185d38660c6b0"
-        };
+};
+
 
         // ============================================
         // APPLICATION CODE
@@ -354,24 +347,8 @@
 
         function getRandomPosition() {
             const padding = 50;
-            const submitSection = document.querySelector('.submit-section');
-            const submitRect = submitSection.getBoundingClientRect();
-            
-            // Calculate safe zones (avoiding the top input area)
-            const safeTopMargin = submitRect.bottom + 20; // 20px below the input box
-            
-            // Create a grid-like distribution to reduce overlap
-            const gridCols = Math.floor(window.innerWidth / 280);
-            const gridRows = Math.floor((window.innerHeight - safeTopMargin) / 150);
-            
-            const col = Math.floor(Math.random() * gridCols);
-            const row = Math.floor(Math.random() * gridRows);
-            
-            // Add some randomness within the grid cell
-            const randomOffset = 40;
-            const x = (col * 280) + padding + (Math.random() * randomOffset);
-            const y = safeTopMargin + (row * 150) + (Math.random() * randomOffset);
-            
+            const x = Math.random() * (window.innerWidth - 300) + padding;
+            const y = Math.random() * (window.innerHeight - 200) + 150;
             return { x, y };
         }
 

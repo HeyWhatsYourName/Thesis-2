@@ -334,7 +334,7 @@
             thoughtsRef.push(thought)
                 .then(() => {
                     document.getElementById('messageInput').value = '';
-                    updateStatus("Thought released! ✨", "connected");
+                    updateStatus("Thought released!", "connected");
                     setTimeout(() => {
                         updateStatus("Connected - Live updates active", "connected");
                     }, 2000);
